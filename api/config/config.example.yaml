@@ -1,0 +1,17 @@
+# Copie para config.<ambiente>.yaml e ajuste os valores.
+# As credenciais IMAP não entram aqui — chegam por requisição, via
+# headers imapUser/imapPassword.
+
+server:
+  addr: ":8080"
+
+imap:
+  host: imap.example.com
+  port: 993
+  tls: true
+
+search:
+  # Nº máximo de pastas buscadas em paralelo (uma goroutine + conexão
+  # IMAP própria cada) em GET /emails/search sem "folder" (todas as
+  # pastas).
+  folderConcurrency: 10

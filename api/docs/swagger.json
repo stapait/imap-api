@@ -1,0 +1,1350 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API HTTP que abstrai operações IMAP. Multi-conta: cada requisição carrega as credenciais IMAP da conta a ser acessada, nos headers imapUser/imapPassword (ver descrição de cada endpoint) — a API não guarda usuário nenhum, só repassa pro servidor IMAP configurado.",
+        "title": "imap-api",
+        "contact": {},
+        "version": "0.1"
+    },
+    "basePath": "/",
+    "paths": {
+        "/account": {
+            "get": {
+                "description": "Quota de armazenamento (STORAGE) da conta autenticada, em bytes (total e usado) — o IMAP devolve em KiB, convertido aqui. null nos dois campos se a conta/servidor não tiver quota de STORAGE (não é erro).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "conta"
+                ],
+                "summary": "Quota da conta",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.accountResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/emails/search": {
+            "get": {
+                "description": "Busca por texto livre e/ou filtros estruturados (remetente, destinatário, assunto, anexo, favorito, lida/não lida, data), numa pasta específica ou em todas as pastas da conta. Sem \"folder\", busca em paralelo em todas as pastas (grau de paralelismo configurável via search.folderConcurrency) e mergeia o resultado. hasAttachment usa uma heurística de texto (não há chave de SEARCH nativa pra isso no IMAP) — pode ter falso positivo/negativo; o campo hasAttachment de cada resultado, esse sim, é calculado de verdade via BODYSTRUCTURE.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "e-mails"
+                ],
+                "summary": "Busca e-mails",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Restringe a busca a essa pasta (barra de nível aninhado como %2F); se omitido, busca em todas as pastas",
+                        "name": "folder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Texto livre (assunto, remetentes, destinatários e corpo)",
+                        "name": "query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filtra pelo remetente (header From)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filtra pelo destinatário (header To)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filtra pelo assunto",
+                        "name": "subject",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filtra por ter (true) ou não ter (false) anexo — heurística de texto, não exata",
+                        "name": "hasAttachment",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filtra por favoritada (true) ou não (false)",
+                        "name": "starred",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filtra por não lida (true) ou lida (false)",
+                        "name": "unread",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mensagens a partir dessa data, inclusive (AAAA-MM-DD)",
+                        "name": "since",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mensagens antes dessa data (AAAA-MM-DD)",
+                        "name": "before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Página (padrão 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Itens por página, 10-100 (padrão 50)",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Inverte a ordenação padrão (mais recente primeiro) pra mais antiga primeiro",
+                        "name": "oldestFirst",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.searchResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "parâmetros inválidos (ver descrição de cada um)",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "pasta não encontrada (só quando folder é informado)",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/folders": {
+            "get": {
+                "description": "Lista as pastas IMAP disponíveis na conta autenticada, com nome, total de mensagens e não lidas (contagem sem a flag \\Seen, via LIST-STATUS) de cada uma.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pastas"
+                ],
+                "summary": "Lista as pastas",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.foldersResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/folders/{pasta}": {
+            "get": {
+                "description": "Mesmo shape de GET /folders, restrito à pasta pedida e suas sub-pastas (diretas ou não) — não inclui as demais pastas da conta. Uma pasta aninhada é passada com a barra hierárquica percent-encoded (%2F), ex: \"Trabalho%2FProjetos\" pra \"Trabalho/Projetos\" — a barra literal não é aceita (vira mais um segmento de path e dá 404).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pastas"
+                ],
+                "summary": "Busca uma pasta específica",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da pasta (barra de nível aninhado como %2F)",
+                        "name": "pasta",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.foldersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "nome da pasta ausente",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "pasta não encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Cria a pasta pedida (barra de nível aninhado como %2F pra criar direto uma sub-pasta, ex: \"Trabalho%2FNovaPasta\"). Sem validação própria de nome — erros de nome inválido/pasta já existente vêm do próprio servidor IMAP.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pastas"
+                ],
+                "summary": "Cria uma pasta",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da pasta a criar (barra de nível aninhado como %2F)",
+                        "name": "pasta",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.folderInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "nome da pasta ausente",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "pasta já existe",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP (inclui nome de pasta rejeitado pelo servidor)",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Apaga a pasta pedida e todas as suas sub-pastas (diretas ou não), recursivamente. INBOX nunca pode ser apagada (regra do próprio protocolo IMAP).",
+                "tags": [
+                    "pastas"
+                ],
+                "summary": "Apaga uma pasta",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da pasta (barra de nível aninhado como %2F)",
+                        "name": "pasta",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "pasta apagada"
+                    },
+                    "400": {
+                        "description": "nome da pasta ausente, ou é a INBOX (nunca pode ser apagada)",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "pasta não encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Renomeia a pasta pedida — body {\"name\": \"NovoNome\"}. INBOX não pode ser renomeada (RFC 3501 define uma semântica especial pra \"RENAME INBOX\" — não renomeia a INBOX em si, só move as mensagens pra uma pasta nova — surpreendente demais pra expor, por isso bloqueada). Sem validação própria de nome — erros de nome inválido/pasta já existente vêm do próprio servidor IMAP.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pastas"
+                ],
+                "summary": "Renomeia uma pasta",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome atual da pasta (barra de nível aninhado como %2F)",
+                        "name": "pasta",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Novo nome",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.renameFolderRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.foldersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "nome da pasta ausente, body inválido, name ausente, ou é a INBOX",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "pasta não encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "já existe uma pasta com o novo nome",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/folders/{pasta}/emails": {
+            "get": {
+                "description": "Listagem leve (sem corpo) pra exibição em lista, paginada e ordenada por data. Não marca as mensagens como lidas (Select em modo somente-leitura).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "e-mails"
+                ],
+                "summary": "Lista e-mails de uma pasta",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da pasta (barra de nível aninhado como %2F)",
+                        "name": "pasta",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Página (padrão 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Itens por página, 10-100 (padrão 50)",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Inverte a ordenação padrão (mais recente primeiro) pra mais antiga primeiro",
+                        "name": "oldestFirst",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.emailsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "nome da pasta ausente, ou page/pageSize/oldestFirst inválidos",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "pasta não encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Sem body (ou \"uids\" vazio): esvazia a pasta inteira, sempre definitivo (marca \\Deleted em todas e EXPUNGE) — a pasta em si continua existindo. Com \"uids\" no body: apaga só essas mensagens, lixeira-aware (move pra \"Trash\", ou apaga definitivo se a pasta já for \"Trash\"). Idempotente: pasta já vazia (ou uids que não existem mais) não é erro.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "e-mails"
+                ],
+                "summary": "Esvazia uma pasta, ou apaga mensagens específicas dela",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da pasta (barra de nível aninhado como %2F)",
+                        "name": "pasta",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "uids a apagar — omitido/vazio esvazia a pasta inteira",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.deleteEmailsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "mensagens apagadas"
+                    },
+                    "400": {
+                        "description": "nome da pasta ausente, ou body inválido",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "pasta não encontrada, ou (só com uids, movendo pra lixeira) pasta de lixeira não encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/folders/{pasta}/emails/flags": {
+            "patch": {
+                "description": "Adiciona/remove, em lote, as flags informadas (read → \\Seen, starred → \\Flagged, answered → \\Answered, forwarded → $Forwarded) sobre as mensagens de \"uids\" — todas opcionais, mas ao menos uma precisa vir; só a(s) informada(s) é(são) alterada(s), as demais ficam como estavam.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "e-mails"
+                ],
+                "summary": "Marca/desmarca flags de mensagens",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da pasta (barra de nível aninhado como %2F)",
+                        "name": "pasta",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "uids a alterar, mais ao menos uma flag",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.patchEmailFlagsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "flags alteradas"
+                    },
+                    "400": {
+                        "description": "nome da pasta ausente, body inválido, uids vazio, ou nenhuma flag informada",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "pasta não encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/folders/{pasta}/emails/move": {
+            "patch": {
+                "description": "Move, em lote, as mensagens de \"uids\" da pasta {pasta} pra \"destinationFolder\".",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "e-mails"
+                ],
+                "summary": "Move mensagens pra outra pasta",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da pasta de origem (barra de nível aninhado como %2F)",
+                        "name": "pasta",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "uids a mover, mais destinationFolder",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.moveEmailsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "mensagens movidas"
+                    },
+                    "400": {
+                        "description": "nome da pasta ausente, body inválido, uids vazio, ou destinationFolder ausente",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "pasta de origem ou de destino não encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/folders/{pasta}/emails/{uid}": {
+            "get": {
+                "description": "E-mail completo: metadados estruturados (equivalente ao ENVELOPE/FLAGS do IMAP — nunca um bloco de headers técnicos crus, tipo Message-ID/Received/Return-Path) mais o corpo parseado (HTML tem preferência sobre texto simples quando a mensagem tem os dois) e a lista leve de anexos (nome/tipo/tamanho, sem o conteúdo binário). Diferente da listagem, marca a mensagem como lida (\\Seen) no servidor IMAP.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "e-mails"
+                ],
+                "summary": "Busca um e-mail completo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da pasta (barra de nível aninhado como %2F)",
+                        "name": "pasta",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "UID da mensagem (IMAP)",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.emailDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "nome da pasta ausente, ou uid não numérico",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "pasta ou e-mail não encontrados",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/folders/{pasta}/emails/{uid}/attachments/{attachmentId}": {
+            "get": {
+                "description": "Conteúdo binário de um anexo específico (Content-Type do anexo, Content-Disposition: attachment) — attachmentId vem pronto no campo attachmentLink de cada item de \"attachments\" em GET .../emails/{uid}, não é pra ser montado à mão. Diferente da leitura do e-mail completo, não marca a mensagem como lida.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "anexos"
+                ],
+                "summary": "Baixa um anexo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da pasta (barra de nível aninhado como %2F)",
+                        "name": "pasta",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "UID da mensagem (IMAP)",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Id do anexo (vem de attachmentLink em GET .../emails/{uid})",
+                        "name": "attachmentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "nome da pasta ausente, ou uid não numérico",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "pasta, e-mail ou anexo não encontrados",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/folders/{pasta}/emails/{uid}/raw": {
+            "get": {
+                "description": "Conteúdo bruto da mensagem original (RFC 822), sem nenhum parsing — útil pra debug ou export. Diferente de GET .../emails/{uid}, não marca a mensagem como lida.",
+                "produces": [
+                    "message/rfc822"
+                ],
+                "tags": [
+                    "e-mails"
+                ],
+                "summary": "Baixa a fonte crua do e-mail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da pasta (barra de nível aninhado como %2F)",
+                        "name": "pasta",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "UID da mensagem (IMAP)",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Usuário IMAP",
+                        "name": "imapUser",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha IMAP",
+                        "name": "imapPassword",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "nome da pasta ausente, ou uid não numérico",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "headers imapUser/imapPassword ausentes, ou credenciais inválidas",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "pasta ou e-mail não encontrados",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "falha ao comunicar com o servidor IMAP",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "description": "Confirma que o processo da API está no ar e respondendo — não verifica conectividade com o servidor IMAP configurado nem nenhuma outra dependência externa.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "operacional"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.healthResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "httpapi.accountResponse": {
+            "type": "object",
+            "properties": {
+                "quotaTotal": {
+                    "type": "integer"
+                },
+                "quotaUsed": {
+                    "type": "integer"
+                }
+            }
+        },
+        "httpapi.attachmentInfo": {
+            "type": "object",
+            "properties": {
+                "attachmentLink": {
+                    "type": "string"
+                },
+                "contentType": {
+                    "type": "string"
+                },
+                "filename": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "httpapi.deleteEmailsRequest": {
+            "type": "object",
+            "properties": {
+                "uids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "httpapi.emailAddress": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpapi.emailDetail": {
+            "type": "object",
+            "properties": {
+                "answered": {
+                    "type": "boolean"
+                },
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/httpapi.attachmentInfo"
+                    }
+                },
+                "body": {
+                    "type": "string"
+                },
+                "cc": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/httpapi.emailAddress"
+                    }
+                },
+                "date": {
+                    "type": "string"
+                },
+                "forwarded": {
+                    "type": "boolean"
+                },
+                "from": {
+                    "$ref": "#/definitions/httpapi.emailAddress"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "read": {
+                    "type": "boolean"
+                },
+                "starred": {
+                    "type": "boolean"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/httpapi.emailAddress"
+                    }
+                },
+                "uid": {
+                    "type": "integer"
+                }
+            }
+        },
+        "httpapi.emailInfo": {
+            "type": "object",
+            "properties": {
+                "forwarded": {
+                    "type": "boolean"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "hasAttachment": {
+                    "type": "boolean"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "integer"
+                }
+            }
+        },
+        "httpapi.emailsResponse": {
+            "type": "object",
+            "properties": {
+                "emails": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/httpapi.emailInfo"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "httpapi.errorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpapi.folderInfo": {
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "unread": {
+                    "type": "integer"
+                }
+            }
+        },
+        "httpapi.foldersResponse": {
+            "type": "object",
+            "properties": {
+                "folders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/httpapi.folderInfo"
+                    }
+                }
+            }
+        },
+        "httpapi.healthResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpapi.moveEmailsRequest": {
+            "type": "object",
+            "properties": {
+                "destinationFolder": {
+                    "type": "string"
+                },
+                "uids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "httpapi.patchEmailFlagsRequest": {
+            "type": "object",
+            "properties": {
+                "answered": {
+                    "type": "boolean"
+                },
+                "forwarded": {
+                    "type": "boolean"
+                },
+                "read": {
+                    "type": "boolean"
+                },
+                "starred": {
+                    "type": "boolean"
+                },
+                "uids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "httpapi.renameFolderRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpapi.searchEmailInfo": {
+            "type": "object",
+            "properties": {
+                "folder": {
+                    "type": "string"
+                },
+                "forwarded": {
+                    "type": "boolean"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "hasAttachment": {
+                    "type": "boolean"
+                },
+                "subject": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "integer"
+                }
+            }
+        },
+        "httpapi.searchResponse": {
+            "type": "object",
+            "properties": {
+                "emails": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/httpapi.searchEmailInfo"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "totalPages": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

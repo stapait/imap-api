@@ -1,0 +1,25 @@
+version: "3"
+
+tasks:
+  test:unit:
+    desc: Testes unitários (rápidos, sem dependências externas).
+    cmds:
+      - go test ./...
+
+  test:integration:
+    desc: >-
+      Testes de integração, um por endpoint, contra o Dovecot local.
+      Requer "docker compose up -d" rodando em ../docker e arquivos
+      .eml em docker/emails. Repopula a caixa de teste antes de rodar
+      (docker/populate-mailbox/populate_mailbox.py) — pode demorar.
+    cmds:
+      - go test -tags=integration -count=1 -v ./test/integration/...
+
+  swagger:generate:
+    desc: >-
+      Regenera docs/ (docs.go, swagger.json, swagger.yaml) a partir das
+      anotações @... acima de cada handler HTTP. Roda depois de
+      adicionar/mudar um endpoint ou suas anotações — docs/ é
+      versionado, então o resultado precisa entrar no commit.
+    cmds:
+      - go generate ./...

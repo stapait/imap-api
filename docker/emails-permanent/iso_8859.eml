@@ -1,0 +1,172 @@
+Return-Path: <no-reply@uol.com.br>
+Received: from a2-sinai5-1 (a2-sinai5.host.intranet [10.129.135.37])
+	 by cyruslmtpuol21-a with LMTPA;
+	 Wed, 10 Apr 2019 16:00:29 -0300
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by a2-seldon1-2.uol.com.br (Postfix) with ESMTP id 556771C01111
+	for <asantosamorim1991@uol.com.br>; Wed, 10 Apr 2019 16:00:29 -0300 (BRT)
+X-Amavis-Alert: BAD HEADER SECTION, Missing required header field: "Date"
+Received: from a5-jaiminho1 (a5-jaiminho1.host.intranet [10.134.16.16])
+	by a2-seldon1-2.uol.com.br (Postfix) with ESMTP id 457461C005C7
+	for <asantosamorim1991@uol.com.br>; Wed, 10 Apr 2019 16:00:29 -0300 (BRT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=uol.com.br; s=uolrp;
+	t=1554922829; bh=/OdU4iRpUp3P9DYADJa0Oy2kbXmhc8ShE/y/vOthTAo=;
+	h=From:To:Subject;
+	b=H9d5wyWgzeEL5PfvxgeMeDfuoq/TDp7Vqju03klg/b+OoryR5nbPDD1UDNS3XxJ1I
+	 EB7KKAx53inNIap4F9SCDyTsIw00tXDuijmdJG/VoA4/GZD46VNPU3GxH4ERtmy6De
+	 XB8RnoJnTD4K1QTyHlzExURZhoL/MC20pkBCIUt8=
+From: no-reply@uol.com.br
+To: asantosamorim1991@uol.com.br
+Message-ID: <358991510.75075621554922829271.JavaMail.no-reply@uol.com.br>
+Subject: =?ISO-8859-1?Q?Declara=E7=E3o_de_quita=E7=E3o_anual_de_d=E9bitos_-_UOL?=
+MIME-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_7502654_946820540.1554922829270"
+X-SIG5: 1401046a2931ed5a89ebd5be6b90cf13
+Date: Wed, 10 Apr 2019 16:00:29 -0300 (BRT)
+
+------=_Part_7502654_946820540.1554922829270
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <style type=3D"text/css">
+            .width{
+                max-width:600px !important;
+            }
+        </style>
+        <meta charset=3D"utf-8">
+    </head>
+    <body style=3D"border:none; margin:0; padding:0;">
+        <table width=3D"100%" height=3D"100%" bgcolor=3D"#eaeaea" align=3D"=
+center" cellpadding=3D"0" cellspacing=3D"0" border=3D"0">
+            <tr height=3D"15">
+                <td width=3D"10"></td>
+                <td></td>
+                <td width=3D"10"></td>
+            </tr>
+            <tr>
+                <td width=3D"10">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                <td>
+                    <table class=3D"width" bgcolor=3D"#FFFFFF" align=3D"cen=
+ter" cellpadding=3D"0" cellspacing=3D"0" border=3D"0" style=3D"max-width:60=
+0px; border:1px solid #d1d1d1; margin:0 auto;">
+                        <tr height=3D"60">
+                            <td width=3D"20px"></td>
+                            <td>
+                                <img src=3D"http://imguol.com/saca/images/u=
+ol/logo_uol_email.png" width=3D"113px" height=3D"42" alt=3D"UOL">
+                            </td>
+                            <td width=3D"20px"></td>
+                        </tr>
+                        <tr height=3D"3">
+                            <td colspan=3D"3" bgcolor=3D"#f5c527"></td>
+                        </tr>
+
+                        <tr height=3D"20"><td></td></tr>
+                        <tr>
+                            <td width=3D"20px" style=3D"width:20px; min-wid=
+th:20px;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                            <td style=3D"width:560px;">
+                                <table width=3D"100%" cellpadding=3D"0" cel=
+lspacing=3D"0">
+                                    <tr>
+                                        <td>
+                                            <font face=3D"Arial, Helvetica,=
+ sans-serif">
+
+                                                <p><strong>Declara&ccedil;&=
+atilde;o de Quita&ccedil;&atilde;o Anual de D&eacute;bitos</strong></p>
+                                          =20
+                                                <font color=3D"#5b5b5b" fac=
+e=3D"Verdana" size=3D"2">
+                                                    <br/>
+                                                    <strong>Universo Online=
+ S.A</strong><br/>
+                                                    Avenida Brigadeiro Fari=
+a Lima, 1.384, 6&ordm; andar<br/>
+                                                    CEP 01451-001 S&atilde;=
+o Paulo SP<br/>
+                                                    CNPJ 01.109.184/0004-38=
+<br/>
+                                                    Inscri&ccedil;&atilde;o=
+ Estadual 114.816.816.117<br/><br/>
+
+                                                    Em aten&ccedil;&atilde;=
+o &agrave; Lei Federal n&ordm; 12.007/09, o UOL declara que todas as fatura=
+s de presta&ccedil;&atilde;o de servi&ccedil;os, emitidas em nome do usu&aa=
+cute;rio <strong>ALE=C7ANDR=D4 =C1=C9=CD=D3=DA=C3=D5=C2=CA=CE=D4=DB=C0=C8=
+=CC=D2=D9=C1=C9=CD=D3=DA=C3=D5=C2=CA=CE=D4=DB=C0=C8=CC=D2=D9=C7=C7=DC</stro=
+ng> e vinculados ao login <strong>ASANTOSAMORIM1991@UOL.COM.BR</strong>, co=
+m vencimentos ocorridos em <strong>2018</strong> encontram-se quitadas.<br/=
+><br/>
+                                                   =20
+                                                    Esta declara&ccedil;&at=
+ilde;o substitui, para efeito de comprova&ccedil;&atilde;o de pagamento, as=
+ quita&ccedil;&otilde;es dos faturamentos mensais dos d&eacute;bitos do ano=
+ de <strong>2018</strong> e dos anos anteriores. Ficam ressalvados desta de=
+clara&ccedil;&atilde;o eventuais d&eacute;bitos decorrentes de parcelamento=
+ ou renegocia&ccedil;&atilde;o de d&iacute;vidas, processos judiciais ou ad=
+ministrativos cujas decis&otilde;es venham a ser favor&aacute;veis ao UOL, =
+servi&ccedil;os prestados e n&atilde;o faturados e outras exce&ccedil;&otil=
+de;es previstas na Lei.<br/><br/>
+                                                   =20
+                                                    <b>Equipe UOL</b>
+                                               =20
+                                                </font>
+                                            </font>
+                                        </td>
+                                    </tr>
+                                    <tr height=3D"10"><td></td></tr>
+                                    <tr>
+                                        <td style=3D"border-bottom:1px soli=
+d #f1f1f1;"></td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td width=3D"20px" style=3D"width:20px; min-wid=
+th:20px;">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                        </tr>
+                    </table>
+                    <table class=3D"width" align=3D"center" cellpadding=3D"=
+0" cellspacing=3D"0" border=3D"0" style=3D"max-width:600px; margin:0 auto;"=
+>
+                        <tr>
+                            <td style=3D"width:600px;">
+                                <table width=3D"100%" cellpadding=3D"0" cel=
+lspacing=3D"0">
+                                    <tr height=3D"30"><td></td></tr>
+                                    <tr>
+                                        <td style=3D"min-width:100px">
+                                            <img src=3D"http://imguol.com/p=
+/sac/uol/images/b5f0cb1a.uol.png" width=3D"66" height=3D"25" alt=3D"UOL">
+                                        </td>
+                                        <td align=3D"right">
+                                            <font style=3D"font-size:11px; =
+font-family: 'Verdana'; text-align:right; color:#141414;">
+                                                Essa &eacute; uma mensagem =
+autom&aacute;tica. Por favor, n&atilde;o responda a esse e-mail.
+                                                <br>
+                                                &#169;1996-2019 UOL - O mel=
+hor conte&uacute;do. Todos os direitos reservados.
+                                            </font>   =20
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td width=3D"10">&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            </tr>
+            <tr height=3D"10">
+                <td></td>
+            </tr>
+        </table>
+    </body>
+</html>
+
+------=_Part_7502654_946820540.1554922829270--
+

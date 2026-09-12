@@ -1,0 +1,7 @@
+docker/.env
+docker/generate-emails/emails-generated/
+docker/emails/
+__pycache__/
+*.pyc
+api/server
+api/cmd/server/server

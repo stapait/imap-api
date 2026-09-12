@@ -1,0 +1,953 @@
+basePath: /
+definitions:
+  httpapi.accountResponse:
+    properties:
+      quotaTotal:
+        type: integer
+      quotaUsed:
+        type: integer
+    type: object
+  httpapi.attachmentInfo:
+    properties:
+      attachmentLink:
+        type: string
+      contentType:
+        type: string
+      filename:
+        type: string
+      size:
+        type: integer
+    type: object
+  httpapi.deleteEmailsRequest:
+    properties:
+      uids:
+        items:
+          type: integer
+        type: array
+    type: object
+  httpapi.emailAddress:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  httpapi.emailDetail:
+    properties:
+      answered:
+        type: boolean
+      attachments:
+        items:
+          $ref: '#/definitions/httpapi.attachmentInfo'
+        type: array
+      body:
+        type: string
+      cc:
+        items:
+          $ref: '#/definitions/httpapi.emailAddress'
+        type: array
+      date:
+        type: string
+      forwarded:
+        type: boolean
+      from:
+        $ref: '#/definitions/httpapi.emailAddress'
+      mimeType:
+        type: string
+      read:
+        type: boolean
+      starred:
+        type: boolean
+      subject:
+        type: string
+      to:
+        items:
+          $ref: '#/definitions/httpapi.emailAddress'
+        type: array
+      uid:
+        type: integer
+    type: object
+  httpapi.emailInfo:
+    properties:
+      forwarded:
+        type: boolean
+      from:
+        type: string
+      hasAttachment:
+        type: boolean
+      subject:
+        type: string
+      uid:
+        type: integer
+    type: object
+  httpapi.emailsResponse:
+    properties:
+      emails:
+        items:
+          $ref: '#/definitions/httpapi.emailInfo'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  httpapi.errorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  httpapi.folderInfo:
+    properties:
+      messages:
+        type: integer
+      name:
+        type: string
+      unread:
+        type: integer
+    type: object
+  httpapi.foldersResponse:
+    properties:
+      folders:
+        items:
+          $ref: '#/definitions/httpapi.folderInfo'
+        type: array
+    type: object
+  httpapi.healthResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  httpapi.moveEmailsRequest:
+    properties:
+      destinationFolder:
+        type: string
+      uids:
+        items:
+          type: integer
+        type: array
+    type: object
+  httpapi.patchEmailFlagsRequest:
+    properties:
+      answered:
+        type: boolean
+      forwarded:
+        type: boolean
+      read:
+        type: boolean
+      starred:
+        type: boolean
+      uids:
+        items:
+          type: integer
+        type: array
+    type: object
+  httpapi.renameFolderRequest:
+    properties:
+      name:
+        type: string
+    type: object
+  httpapi.searchEmailInfo:
+    properties:
+      folder:
+        type: string
+      forwarded:
+        type: boolean
+      from:
+        type: string
+      hasAttachment:
+        type: boolean
+      subject:
+        type: string
+      uid:
+        type: integer
+    type: object
+  httpapi.searchResponse:
+    properties:
+      emails:
+        items:
+          $ref: '#/definitions/httpapi.searchEmailInfo'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: 'API HTTP que abstrai operações IMAP. Multi-conta: cada requisição
+    carrega as credenciais IMAP da conta a ser acessada, nos headers imapUser/imapPassword
+    (ver descrição de cada endpoint) — a API não guarda usuário nenhum, só repassa
+    pro servidor IMAP configurado.'
+  title: imap-api
+  version: "0.1"
+paths:
+  /account:
+    get:
+      description: Quota de armazenamento (STORAGE) da conta autenticada, em bytes
+        (total e usado) — o IMAP devolve em KiB, convertido aqui. null nos dois campos
+        se a conta/servidor não tiver quota de STORAGE (não é erro).
+      parameters:
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.accountResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Quota da conta
+      tags:
+      - conta
+  /emails/search:
+    get:
+      description: Busca por texto livre e/ou filtros estruturados (remetente, destinatário,
+        assunto, anexo, favorito, lida/não lida, data), numa pasta específica ou em
+        todas as pastas da conta. Sem "folder", busca em paralelo em todas as pastas
+        (grau de paralelismo configurável via search.folderConcurrency) e mergeia
+        o resultado. hasAttachment usa uma heurística de texto (não há chave de SEARCH
+        nativa pra isso no IMAP) — pode ter falso positivo/negativo; o campo hasAttachment
+        de cada resultado, esse sim, é calculado de verdade via BODYSTRUCTURE.
+      parameters:
+      - description: Restringe a busca a essa pasta (barra de nível aninhado como
+          %2F); se omitido, busca em todas as pastas
+        in: query
+        name: folder
+        type: string
+      - description: Texto livre (assunto, remetentes, destinatários e corpo)
+        in: query
+        name: query
+        type: string
+      - description: Filtra pelo remetente (header From)
+        in: query
+        name: from
+        type: string
+      - description: Filtra pelo destinatário (header To)
+        in: query
+        name: to
+        type: string
+      - description: Filtra pelo assunto
+        in: query
+        name: subject
+        type: string
+      - description: Filtra por ter (true) ou não ter (false) anexo — heurística de
+          texto, não exata
+        in: query
+        name: hasAttachment
+        type: boolean
+      - description: Filtra por favoritada (true) ou não (false)
+        in: query
+        name: starred
+        type: boolean
+      - description: Filtra por não lida (true) ou lida (false)
+        in: query
+        name: unread
+        type: boolean
+      - description: Mensagens a partir dessa data, inclusive (AAAA-MM-DD)
+        in: query
+        name: since
+        type: string
+      - description: Mensagens antes dessa data (AAAA-MM-DD)
+        in: query
+        name: before
+        type: string
+      - description: Página (padrão 1)
+        in: query
+        name: page
+        type: integer
+      - description: Itens por página, 10-100 (padrão 50)
+        in: query
+        name: pageSize
+        type: integer
+      - description: Inverte a ordenação padrão (mais recente primeiro) pra mais antiga
+          primeiro
+        in: query
+        name: oldestFirst
+        type: boolean
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.searchResponse'
+        "400":
+          description: parâmetros inválidos (ver descrição de cada um)
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "404":
+          description: pasta não encontrada (só quando folder é informado)
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Busca e-mails
+      tags:
+      - e-mails
+  /folders:
+    get:
+      description: Lista as pastas IMAP disponíveis na conta autenticada, com nome,
+        total de mensagens e não lidas (contagem sem a flag \Seen, via LIST-STATUS)
+        de cada uma.
+      parameters:
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.foldersResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Lista as pastas
+      tags:
+      - pastas
+  /folders/{pasta}:
+    delete:
+      description: Apaga a pasta pedida e todas as suas sub-pastas (diretas ou não),
+        recursivamente. INBOX nunca pode ser apagada (regra do próprio protocolo IMAP).
+      parameters:
+      - description: Nome da pasta (barra de nível aninhado como %2F)
+        in: path
+        name: pasta
+        required: true
+        type: string
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      responses:
+        "204":
+          description: pasta apagada
+        "400":
+          description: nome da pasta ausente, ou é a INBOX (nunca pode ser apagada)
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "404":
+          description: pasta não encontrada
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Apaga uma pasta
+      tags:
+      - pastas
+    get:
+      description: 'Mesmo shape de GET /folders, restrito à pasta pedida e suas sub-pastas
+        (diretas ou não) — não inclui as demais pastas da conta. Uma pasta aninhada
+        é passada com a barra hierárquica percent-encoded (%2F), ex: "Trabalho%2FProjetos"
+        pra "Trabalho/Projetos" — a barra literal não é aceita (vira mais um segmento
+        de path e dá 404).'
+      parameters:
+      - description: Nome da pasta (barra de nível aninhado como %2F)
+        in: path
+        name: pasta
+        required: true
+        type: string
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.foldersResponse'
+        "400":
+          description: nome da pasta ausente
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "404":
+          description: pasta não encontrada
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Busca uma pasta específica
+      tags:
+      - pastas
+    patch:
+      consumes:
+      - application/json
+      description: 'Renomeia a pasta pedida — body {"name": "NovoNome"}. INBOX não
+        pode ser renomeada (RFC 3501 define uma semântica especial pra "RENAME INBOX"
+        — não renomeia a INBOX em si, só move as mensagens pra uma pasta nova — surpreendente
+        demais pra expor, por isso bloqueada). Sem validação própria de nome — erros
+        de nome inválido/pasta já existente vêm do próprio servidor IMAP.'
+      parameters:
+      - description: Nome atual da pasta (barra de nível aninhado como %2F)
+        in: path
+        name: pasta
+        required: true
+        type: string
+      - description: Novo nome
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpapi.renameFolderRequest'
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.foldersResponse'
+        "400":
+          description: nome da pasta ausente, body inválido, name ausente, ou é a
+            INBOX
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "404":
+          description: pasta não encontrada
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "409":
+          description: já existe uma pasta com o novo nome
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Renomeia uma pasta
+      tags:
+      - pastas
+    post:
+      description: 'Cria a pasta pedida (barra de nível aninhado como %2F pra criar
+        direto uma sub-pasta, ex: "Trabalho%2FNovaPasta"). Sem validação própria de
+        nome — erros de nome inválido/pasta já existente vêm do próprio servidor IMAP.'
+      parameters:
+      - description: Nome da pasta a criar (barra de nível aninhado como %2F)
+        in: path
+        name: pasta
+        required: true
+        type: string
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/httpapi.folderInfo'
+        "400":
+          description: nome da pasta ausente
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "409":
+          description: pasta já existe
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP (inclui nome de pasta
+            rejeitado pelo servidor)
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Cria uma pasta
+      tags:
+      - pastas
+  /folders/{pasta}/emails:
+    delete:
+      consumes:
+      - application/json
+      description: 'Sem body (ou "uids" vazio): esvazia a pasta inteira, sempre definitivo
+        (marca \Deleted em todas e EXPUNGE) — a pasta em si continua existindo. Com
+        "uids" no body: apaga só essas mensagens, lixeira-aware (move pra "Trash",
+        ou apaga definitivo se a pasta já for "Trash"). Idempotente: pasta já vazia
+        (ou uids que não existem mais) não é erro.'
+      parameters:
+      - description: Nome da pasta (barra de nível aninhado como %2F)
+        in: path
+        name: pasta
+        required: true
+        type: string
+      - description: uids a apagar — omitido/vazio esvazia a pasta inteira
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/httpapi.deleteEmailsRequest'
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      responses:
+        "204":
+          description: mensagens apagadas
+        "400":
+          description: nome da pasta ausente, ou body inválido
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "404":
+          description: pasta não encontrada, ou (só com uids, movendo pra lixeira)
+            pasta de lixeira não encontrada
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Esvazia uma pasta, ou apaga mensagens específicas dela
+      tags:
+      - e-mails
+    get:
+      description: Listagem leve (sem corpo) pra exibição em lista, paginada e ordenada
+        por data. Não marca as mensagens como lidas (Select em modo somente-leitura).
+      parameters:
+      - description: Nome da pasta (barra de nível aninhado como %2F)
+        in: path
+        name: pasta
+        required: true
+        type: string
+      - description: Página (padrão 1)
+        in: query
+        name: page
+        type: integer
+      - description: Itens por página, 10-100 (padrão 50)
+        in: query
+        name: pageSize
+        type: integer
+      - description: Inverte a ordenação padrão (mais recente primeiro) pra mais antiga
+          primeiro
+        in: query
+        name: oldestFirst
+        type: boolean
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.emailsResponse'
+        "400":
+          description: nome da pasta ausente, ou page/pageSize/oldestFirst inválidos
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "404":
+          description: pasta não encontrada
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Lista e-mails de uma pasta
+      tags:
+      - e-mails
+  /folders/{pasta}/emails/{uid}:
+    get:
+      description: 'E-mail completo: metadados estruturados (equivalente ao ENVELOPE/FLAGS
+        do IMAP — nunca um bloco de headers técnicos crus, tipo Message-ID/Received/Return-Path)
+        mais o corpo parseado (HTML tem preferência sobre texto simples quando a mensagem
+        tem os dois) e a lista leve de anexos (nome/tipo/tamanho, sem o conteúdo binário).
+        Diferente da listagem, marca a mensagem como lida (\Seen) no servidor IMAP.'
+      parameters:
+      - description: Nome da pasta (barra de nível aninhado como %2F)
+        in: path
+        name: pasta
+        required: true
+        type: string
+      - description: UID da mensagem (IMAP)
+        in: path
+        name: uid
+        required: true
+        type: integer
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.emailDetail'
+        "400":
+          description: nome da pasta ausente, ou uid não numérico
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "404":
+          description: pasta ou e-mail não encontrados
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Busca um e-mail completo
+      tags:
+      - e-mails
+  /folders/{pasta}/emails/{uid}/attachments/{attachmentId}:
+    get:
+      description: 'Conteúdo binário de um anexo específico (Content-Type do anexo,
+        Content-Disposition: attachment) — attachmentId vem pronto no campo attachmentLink
+        de cada item de "attachments" em GET .../emails/{uid}, não é pra ser montado
+        à mão. Diferente da leitura do e-mail completo, não marca a mensagem como
+        lida.'
+      parameters:
+      - description: Nome da pasta (barra de nível aninhado como %2F)
+        in: path
+        name: pasta
+        required: true
+        type: string
+      - description: UID da mensagem (IMAP)
+        in: path
+        name: uid
+        required: true
+        type: integer
+      - description: Id do anexo (vem de attachmentLink em GET .../emails/{uid})
+        in: path
+        name: attachmentId
+        required: true
+        type: string
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: nome da pasta ausente, ou uid não numérico
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "404":
+          description: pasta, e-mail ou anexo não encontrados
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Baixa um anexo
+      tags:
+      - anexos
+  /folders/{pasta}/emails/{uid}/raw:
+    get:
+      description: Conteúdo bruto da mensagem original (RFC 822), sem nenhum parsing
+        — útil pra debug ou export. Diferente de GET .../emails/{uid}, não marca a
+        mensagem como lida.
+      parameters:
+      - description: Nome da pasta (barra de nível aninhado como %2F)
+        in: path
+        name: pasta
+        required: true
+        type: string
+      - description: UID da mensagem (IMAP)
+        in: path
+        name: uid
+        required: true
+        type: integer
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      produces:
+      - message/rfc822
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: nome da pasta ausente, ou uid não numérico
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "404":
+          description: pasta ou e-mail não encontrados
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Baixa a fonte crua do e-mail
+      tags:
+      - e-mails
+  /folders/{pasta}/emails/flags:
+    patch:
+      consumes:
+      - application/json
+      description: Adiciona/remove, em lote, as flags informadas (read → \Seen, starred
+        → \Flagged, answered → \Answered, forwarded → $Forwarded) sobre as mensagens
+        de "uids" — todas opcionais, mas ao menos uma precisa vir; só a(s) informada(s)
+        é(são) alterada(s), as demais ficam como estavam.
+      parameters:
+      - description: Nome da pasta (barra de nível aninhado como %2F)
+        in: path
+        name: pasta
+        required: true
+        type: string
+      - description: uids a alterar, mais ao menos uma flag
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpapi.patchEmailFlagsRequest'
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      responses:
+        "204":
+          description: flags alteradas
+        "400":
+          description: nome da pasta ausente, body inválido, uids vazio, ou nenhuma
+            flag informada
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "404":
+          description: pasta não encontrada
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Marca/desmarca flags de mensagens
+      tags:
+      - e-mails
+  /folders/{pasta}/emails/move:
+    patch:
+      consumes:
+      - application/json
+      description: Move, em lote, as mensagens de "uids" da pasta {pasta} pra "destinationFolder".
+      parameters:
+      - description: Nome da pasta de origem (barra de nível aninhado como %2F)
+        in: path
+        name: pasta
+        required: true
+        type: string
+      - description: uids a mover, mais destinationFolder
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httpapi.moveEmailsRequest'
+      - description: Usuário IMAP
+        in: header
+        name: imapUser
+        required: true
+        type: string
+      - description: Senha IMAP
+        in: header
+        name: imapPassword
+        required: true
+        type: string
+      responses:
+        "204":
+          description: mensagens movidas
+        "400":
+          description: nome da pasta ausente, body inválido, uids vazio, ou destinationFolder
+            ausente
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "401":
+          description: headers imapUser/imapPassword ausentes, ou credenciais inválidas
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "404":
+          description: pasta de origem ou de destino não encontrada
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+        "502":
+          description: falha ao comunicar com o servidor IMAP
+          schema:
+            $ref: '#/definitions/httpapi.errorResponse'
+      summary: Move mensagens pra outra pasta
+      tags:
+      - e-mails
+  /health:
+    get:
+      description: Confirma que o processo da API está no ar e respondendo — não verifica
+        conectividade com o servidor IMAP configurado nem nenhuma outra dependência
+        externa.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.healthResponse'
+      summary: Health check
+      tags:
+      - operacional
+swagger: "2.0"

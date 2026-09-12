@@ -1,0 +1,13 @@
+server:
+  addr: ":8080"
+
+imap:
+  host: 127.0.0.1
+  port: 143
+  tls: false
+
+search:
+  # Nº máximo de pastas buscadas em paralelo (uma goroutine + conexão
+  # IMAP própria cada) em GET /emails/search sem "folder" (todas as
+  # pastas). Mesmo valor usado pela API legada (webmail-api).
+  folderConcurrency: 10

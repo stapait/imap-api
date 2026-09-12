@@ -1,0 +1,20 @@
+services:
+  dovecot:
+    image: dovecot/dovecot:latest
+    container_name: imap-api-dovecot
+    restart: unless-stopped
+    environment:
+      # Dovecot's default auth (passdb static) accepts ANY username as long as
+      # this password is used. DOVECOT_MAILBOX_USER below is just the username
+      # we've standardized on for local development/testing.
+      USER_PASSWORD: ${DOVECOT_MAILBOX_PASSWORD:-changeme123}
+    ports:
+      - "127.0.0.1:143:31143" # plain IMAP only — no TLS, local connections only
+      - "127.0.0.1:24:31025" # plain LMTP only — no TLS, local connections only
+    volumes:
+      - dovecot_mail:/srv/vmail
+      - ./dovecot/conf.d/zz-local-plain.conf:/etc/dovecot/conf.d/zz-local-plain.conf:ro
+      - ./dovecot/conf.d/zz-local-lmtp.conf:/etc/dovecot/conf.d/zz-local-lmtp.conf:ro
+
+volumes:
+  dovecot_mail:
