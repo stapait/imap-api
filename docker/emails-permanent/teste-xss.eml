@@ -1,0 +1,76 @@
+Return-Path: <marcelly01@bol.com.br>
+Delivered-To: marcelly01@bol.com.br
+Received: from director-prod-bol-0 ([10.81.0.205])
+	by backend-c6id-prod-bol-6 with LMTP
+	id 8CixA68StGquGwAAJ0swjg
+	(envelope-from <marcelly01@bol.com.br>)
+	for <marcelly01@bol.com.br>; Wed, 23 Sep 2026 17:55:59 +0000
+Received: from a15-sumeria6-1 ([10.81.0.48])
+	by director-prod-bol-0 with LMTP
+	id 6C/NKa4StGrBCgAAu+uGVA
+	(envelope-from <marcelly01@bol.com.br>)
+	for <marcelly01@bol.com.br>; Wed, 23 Sep 2026 17:55:58 +0000
+X-Comment: SPF check N/A for local connections - client-ip=10.81.4.56; helo=salsa-wm-bol-0.bol.com.br; envelope-from=marcelly01@bol.com.br; receiver=<UNKNOWN> 
+Authentication-Results: a2-selva4.bol.com.br; dmarc=fail (p=none dis=none) header.from=bol.com.br
+Authentication-Results: a2-selva4.bol.com.br; spf=fail smtp.mailfrom=bol.com.br
+Received: from salsa-wm-bol-0.bol.com.br (unknown [10.81.4.56])
+	by a2-selva4.bol.com.br (Postfix) with ESMTP id 4hql4s5VGCz8fpVR
+	for <marcelly01@bol.com.br>; Wed, 23 Sep 2026 14:55:57 -0300 (-03)
+Received: from localhost (localhost [127.0.0.1])
+	by salsa-wm-bol-0.bol.com.br (Postfix) with ESMTP id 4D0F9E00083
+	for <marcelly01@bol.com.br>; Wed, 23 Sep 2026 14:55:57 -0300 (-03)
+Received: from salsa-wm-bol-0.host.intranet (localhost [127.0.0.1])
+	by salsa-wm-bol-0.bol.com.br (Postfix) with ESMTP id 1D5CFE00085
+	for <marcelly01@bol.com.br>; Wed, 23 Sep 2026 14:55:57 -0300 (-03)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=bol.com.br; s=afl;
+	t=1790186157; bh=phrQvWbnn5iiQRkiuD9raKb1sPqOh4TubzQmNZ0CB9w=;
+	h=Date:From:To:In-Reply-To:References:Subject;
+	b=jR7uv7xq7BtwUX4zMwqqmDzkcGdaDk+4TC5K7x2BeNwBoDWX3OQDALr97GwWf3KU1
+	 DTUBPUaPf0aKeQaDXhee1FvEdzgnn8fOdTyb27qb+Ns9SnFe6K0YFYhlHpU5smxpxp
+	 N1OVvP2Sk6qgOp+0+jGUwO5ppM4NMlqPb1WGtboU=
+Received: from localhost (ip-10-81-5-37.ec2.internal [10.81.5.37])
+	by salsa-wm-bol-0.host.intranet (Postfix) with ESMTP id 10BFFE00081
+	for <marcelly01@bol.com.br>; Wed, 23 Sep 2026 14:55:57 -0300 (-03)
+Date: Wed, 23 Sep 2026 14:55:56 -0300
+From: "marcelly01@bol.com.br" <marcelly01@bol.com.br>
+To: "marcelly01@bol.com.br" <marcelly01@bol.com.br>
+Message-ID: <6ab412ac563c3_552d2b016a2011108557c@ip-10-81-5-37.ec2.internal.mail>
+In-Reply-To: 
+References: 
+Subject: teste
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="--==_mimepart_6ab412ac54d5b_552d2b016a201110854a1";
+ charset=utf-8
+Content-Transfer-Encoding: 7bit
+X-SenderIP: 200.221.149.56
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMSCORE: 15
+X-VADE-SPAMCAUSE: dmFkZTG4MZuBKWsdNv3bn6Jj5pkMCAS3oW/GbKEYgUNUJePWzv+ZgXnSI4BntfVM/wUqNdjMhodUh+f5cEtJjhtavwahtUxmbWHAsvxSj2Crx3rTgTZf8CwGiIXiXtBcb6m2ziCCKR36eDt8+QQiFom1/2xap1TG3zPCisMoJiuraR6Kxw83XosGqWT1ihHrzCvRfSOD5yl6v+HiIURHvN45WemXKgcT/D3a0jjIppTa0hdHwOJmdfmPkPZtq6YKn3eN+H8YsMfQmEuAhfOhMwT9oIqoprGueOa9Jo91sAMg01eICGmvObjOSDGPyQ+ng6UbK+KcZgXOcHjkt2oj5ROB/dUNkGyxqMj2VzPRPtA+f59h8t9VcFuHkePJLbmC65aOpMLA5km1hH1V87Dr7srtFsrYquKBEwHg+BVRN4FYJTCtixyUi8zzxS4R/6bxjAaeGCH7g8gxM18gfxct7hldXh9d31vV0gwGck4MI4FHRJyxg5wAZmCwbWHRfg7sOVEYpltJR3t1tcAYxhsWjtPSAQ+j4IL/plHuCEaiLFT4TtRIoUxbPwElISUzkMSBjf1hw9SjO3xN3DC2uN+WNpDQeNSRwC2G43Tmy84hTBPuTT1yKJv+Bsabjn/6i4GAtKWv8j68whw54w4b8RTUxi0rAIKpbVRLbURkq7fKu6oTIBl69w
+X-SIG5: dbedbee14f9b047e499c40e49fda9c53
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMSCORE: 15
+X-VADE-SPAMCAUSE: dmFkZTFsCGYdn6b1KAqn2P2wxoCh4GgyRMQWDnuQcxxpFblGxPyZwF82QoDD0M43t/OeDqw6klc3b83WRxbAjh7iajybvsLCdq5zNDfrc8GP950iwO0BzvuZPSB+fnQfYViYzeo7UdQO2PVz5i9xkfAGhgMJflj18T3coFcuKtpyXg5+QaHAbfACBY0UqCj58BA+LK8TOVmTsvHfWMXUQTCu7+/RWGiIXBk1p0nXvGETXrPE9JqASAc9HUIBv7TjimFiCVGoY/w1itp+ytMBB0KAAAFlOhp4/szOvnWB8aRzc1DI5ItDegHSbdZfJ2I+URVzlcwSo3HshZZauaQxwwHtaqROiF0xlIACOqXZSZYxbG3ZUxh9MTmMg3zaqTwvbnBXmsn0pfL95gZoUYPBN2tVjfkoO8NLofgOusufLo7hnayE6ELDD7ywMpShBJiFxvThrAcLnPmJ2UfYpFuehW20VRFzf/rxImkHeJZANNmHXyz7gCbkPhwTcLIXN8Dpl1tkePABIBfFkmyQjlmRw/sAWBGp3dZAixjd8opL0BozhXTMwcXek8C/iKiESr4yRHgyhIxiWnPUkWgwbnNTgjkOUoL0QF6Me/LLkGhHrr8Zu3+S/L0Sq2+JHF+KnEhiuv+NOm777zkvNsNqH/J+cyC0vBqb4OckTLmyr2KcQdlTXirCuQ
+
+
+----==_mimepart_6ab412ac54d5b_552d2b016a201110854a1
+Content-Type: text/html;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+teste
+----==_mimepart_6ab412ac54d5b_552d2b016a201110854a1
+Content-Type: image/svg+xml;
+ charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename=teste.svg
+filename: teste.svg
+Content-ID: <6ab412924350d_4d152ab9ae44310c44447@ip-10-81-5-23.ec2.internal.mail>
+
+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIG9ubG9h
+ZD0iYWxlcnQoJ1hTUy1QT0MtU1RSWTAwMjEwNzY6ICcgKyBkb2N1bWVudC5k
+b21haW4pIj4KICA8dGV4dCB4PSIxMCIgeT0iMjAiPlhTUyBQb0MgLSBTVFJZ
+MDAyMTA3NjwvdGV4dD4KPC9zdmc+
+
+----==_mimepart_6ab412ac54d5b_552d2b016a201110854a1--
